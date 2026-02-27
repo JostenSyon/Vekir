@@ -1,0 +1,272 @@
+p=println
+pe={pause() exit()}
+wait={t=timer()while(timer()<(t+tw)){print()}}
+
+clear()
+p("Vekir")
+p()
+p("* Debrand + Venom HUD apply")
+p("* Source priority: sd:/venom -> embedded fallback")
+p()
+wait(tw = 800)
+
+# 1) Remove Kefir Nintendo logo patch (sloth)
+clear()
+p("* Remove logo_sloth patch")
+if (fsexists("sd:/atmosphere/exefs_patches/logo_sloth")) {
+	deldir("sd:/atmosphere/exefs_patches/logo_sloth")
+}
+p("Done")
+wait(tw = 700)
+
+# 2) Boot logos (default: Vekir Light, then /venom, then embedded fallback)
+clear()
+p("* Apply boot logos")
+if (fsexists("sd:/switch/vekir/bootlogo/Vekir_w.bmp")) {
+	delfile("sd:/bootloader/bootlogo_kefir.bmp")
+	copyfile("sd:/switch/vekir/bootlogo/Vekir_w.bmp", "sd:/bootloader/bootlogo_kefir.bmp")
+	delfile("sd:/bootloader/bootlogo.bmp")
+	copyfile("sd:/switch/vekir/bootlogo/Vekir_w.bmp", "sd:/bootloader/bootlogo.bmp")
+	delfile("sd:/bootloader/updating.bmp")
+	copyfile("sd:/switch/vekir/bootlogo/Vekir_w.bmp", "sd:/bootloader/updating.bmp")
+	p("Using default: Vekir Light")
+}.else(){
+if (fsexists("sd:/venom/bootloader/bootlogo.bmp")) {
+	delfile("sd:/bootloader/bootlogo_kefir.bmp")
+	copyfile("sd:/venom/bootloader/bootlogo.bmp", "sd:/bootloader/bootlogo_kefir.bmp")
+	delfile("sd:/bootloader/bootlogo.bmp")
+	copyfile("sd:/venom/bootloader/bootlogo.bmp", "sd:/bootloader/bootlogo.bmp")
+
+	if (fsexists("sd:/venom/bootloader/updating.bmp")) {
+		delfile("sd:/bootloader/updating.bmp")
+		copyfile("sd:/venom/bootloader/updating.bmp", "sd:/bootloader/updating.bmp")
+	}.else(){
+		delfile("sd:/bootloader/updating.bmp")
+		copyfile("sd:/venom/bootloader/bootlogo.bmp", "sd:/bootloader/updating.bmp")
+	}
+	p("Using sd:/venom bootlogo")
+}.else(){
+	if (fsexists("sd:/bootloader/bootlogo_venom.bmp")) {
+		delfile("sd:/bootloader/bootlogo_kefir.bmp")
+		copyfile("sd:/bootloader/bootlogo_venom.bmp", "sd:/bootloader/bootlogo_kefir.bmp")
+		delfile("sd:/bootloader/bootlogo.bmp")
+		copyfile("sd:/bootloader/bootlogo_venom.bmp", "sd:/bootloader/bootlogo.bmp")
+		delfile("sd:/bootloader/updating.bmp")
+		copyfile("sd:/bootloader/bootlogo_venom.bmp", "sd:/bootloader/updating.bmp")
+		p("Using embedded fallback bootlogo")
+	}.else(){
+		p("Skip: no Venom bootlogo found")
+	}
+}
+}
+p("Done")
+wait(tw = 700)
+
+# 3) Uberhand/Tesla HUD config
+clear()
+p("* Apply Venom HUD config")
+
+# Keep a curated Uberhand config from the remix (preserves overlay update check).
+# We still import overlays/packages lists from /venom below.
+if (fsexists("sd:/config/uberhand/venom_config.ini")) {
+	delfile("sd:/config/uberhand/config.ini")
+	copyfile("sd:/config/uberhand/venom_config.ini", "sd:/config/uberhand/config.ini")
+	p("Uberhand config: remix preset")
+}.else(){
+	if (fsexists("sd:/venom/config/uberhand/config.ini")) {
+		delfile("sd:/config/uberhand/config.ini")
+		copyfile("sd:/venom/config/uberhand/config.ini", "sd:/config/uberhand/config.ini")
+		p("Uberhand config: sd:/venom fallback")
+	}
+}
+
+if (fsexists("sd:/venom/config/uberhand/overlays.ini")) {
+	delfile("sd:/config/uberhand/overlays.ini")
+	copyfile("sd:/venom/config/uberhand/overlays.ini", "sd:/config/uberhand/overlays.ini")
+}.else(){
+	if (fsexists("sd:/config/uberhand/venom_overlays.ini")) {
+		delfile("sd:/config/uberhand/overlays.ini")
+		copyfile("sd:/config/uberhand/venom_overlays.ini", "sd:/config/uberhand/overlays.ini")
+	}
+}
+
+if (fsexists("sd:/venom/config/uberhand/packages.ini")) {
+	delfile("sd:/config/uberhand/packages.ini")
+	copyfile("sd:/venom/config/uberhand/packages.ini", "sd:/config/uberhand/packages.ini")
+}.else(){
+	if (fsexists("sd:/config/uberhand/venom_packages.ini")) {
+		delfile("sd:/config/uberhand/packages.ini")
+		copyfile("sd:/config/uberhand/venom_packages.ini", "sd:/config/uberhand/packages.ini")
+	}
+}
+
+if (fsexists("sd:/venom/config/tesla/config.ini")) {
+	delfile("sd:/config/tesla/config.ini")
+	copyfile("sd:/venom/config/tesla/config.ini", "sd:/config/tesla/config.ini")
+}.else(){
+	if (fsexists("sd:/config/tesla/venom_config.ini")) {
+		delfile("sd:/config/tesla/config.ini")
+		copyfile("sd:/config/tesla/venom_config.ini", "sd:/config/tesla/config.ini")
+	}
+}
+
+if (fsexists("sd:/venom/switch/.overlays/ovlmenu.ovl")) {
+	delfile("sd:/switch/.overlays/ovlmenu.ovl")
+	copyfile("sd:/venom/switch/.overlays/ovlmenu.ovl", "sd:/switch/.overlays/ovlmenu.ovl")
+	p("ovlmenu: sd:/venom")
+}.else(){
+	if (fsexists("sd:/switch/.overlays/ovlmenu_venom.ovl")) {
+		delfile("sd:/switch/.overlays/ovlmenu.ovl")
+		copyfile("sd:/switch/.overlays/ovlmenu_venom.ovl", "sd:/switch/.overlays/ovlmenu.ovl")
+		p("ovlmenu: embedded fallback")
+	}.else(){
+		p("Skip: no Venom ovlmenu found")
+	}
+}
+
+p("Done")
+wait(tw = 700)
+
+# 4) Debloat Kefir packages + import selected Venom tools (no SC Wizard)
+clear()
+p("* Debloat packages + import Venom tools")
+
+# Remove packages you don't want in Uberhand root
+deldir("sd:/switch/.packages/Theme")
+deldir("sd:/switch/.packages/Translate Interface")
+deldir("sd:/switch/.packages/Settings")
+
+# Remove risky 8GB helper leftovers (if present)
+delfile("sd:/config/uberhand/packages/settings/8gb.txt")
+delfile("sd:/config/uberhand/packages/settings/40mb.te")
+
+# Import Venom System Tweaks package tree (safe, UI/tools focused)
+if (fsexists("sd:/venom/switch/.packages/System Tweaks")) {
+	copydir("sd:/venom/switch/.packages/System Tweaks", "sd:/switch/.packages/")
+	p("Imported: Venom System Tweaks")
+	# Extend Bootlogo menu with Vekir logos and multi-target copies.
+	if (fsexists("sd:/switch/vekir/bootlogo/Vekir_b.bmp")) {
+		copyfile("sd:/switch/vekir/bootlogo/Vekir_b.bmp", "sd:/switch/.packages/System Tweaks/Hekate/Bootlogo/data/Vekir_b.bmp")
+	}
+	if (fsexists("sd:/switch/vekir/bootlogo/Vekir_w.bmp")) {
+		copyfile("sd:/switch/vekir/bootlogo/Vekir_w.bmp", "sd:/switch/.packages/System Tweaks/Hekate/Bootlogo/data/Vekir_w.bmp")
+	}
+	if (fsexists("sd:/switch/vekir/system_tweaks_bootlogo_config.ini")) {
+		delfile("sd:/switch/.packages/System Tweaks/Hekate/Bootlogo/config.ini")
+		copyfile("sd:/switch/vekir/system_tweaks_bootlogo_config.ini", "sd:/switch/.packages/System Tweaks/Hekate/Bootlogo/config.ini")
+	}
+	# Avoid duplicate Bootlogo menu if Venom's Hekate->Bootlogo is available
+	deldir("sd:/switch/.packages/Vekir")
+}.else(){
+	p("Skip: /venom/switch/.packages/System Tweaks not found")
+}
+
+# Re-apply safe Commands menu after imports (keeps Reboot to Hekate, removes Semi-Stock)
+if (fsexists("sd:/switch/vekir/commands_menu.ini")) {
+	delfile("sd:/switch/.packages/config.ini")
+	copyfile("sd:/switch/vekir/commands_menu.ini", "sd:/switch/.packages/config.ini")
+	p("Commands menu: safe preset")
+}.else(){
+	p("Skip: no commands_menu.ini in vekir")
+}
+
+# Import sys-clk backend module (safe OC base, no SC Wizard/loader.kip changes)
+if (fsexists("sd:/venom/atmosphere/contents/00FF0000636C6BFF/exefs.nsp")) {
+	copydir("sd:/venom/atmosphere/contents/00FF0000636C6BFF", "sd:/atmosphere/contents/")
+	# Extra explicit copies in case copydir semantics differ across TegraExplorer builds
+	copyfile("sd:/venom/atmosphere/contents/00FF0000636C6BFF/exefs.nsp", "sd:/atmosphere/contents/00FF0000636C6BFF/exefs.nsp")
+	if (fsexists("sd:/venom/atmosphere/contents/00FF0000636C6BFF/flags/boot2.flag")) {
+		copyfile("sd:/venom/atmosphere/contents/00FF0000636C6BFF/flags/boot2.flag", "sd:/atmosphere/contents/00FF0000636C6BFF/flags/boot2.flag")
+	}
+	p("Imported: sys-clk sysmodule")
+}.else(){
+	p("Skip: sys-clk sysmodule not found in /venom")
+}
+if (fsexists("sd:/venom/config/sys-clk/config.ini")) {
+	copydir("sd:/venom/config/sys-clk", "sd:/config/")
+}
+if (fsexists("sd:/venom/switch/sys-clk-manager/sys-clk-manager.nro")) {
+	copydir("sd:/venom/switch/sys-clk-manager", "sd:/switch/")
+}
+
+# Ensure MissionControl is enabled (Venom pack may not include it).
+if (fsexists("sd:/venom/atmosphere/contents/010000000000bd00/exefs.nsp")) {
+	copydir("sd:/venom/atmosphere/contents/010000000000bd00", "sd:/atmosphere/contents/")
+	p("Imported: MissionControl from /venom")
+}.else(){
+	if (fsexists("sd:/switch/vekir/missioncontrol/atmosphere/contents/010000000000bd00/exefs.nsp")) {
+		copydir("sd:/switch/vekir/missioncontrol/atmosphere/contents/010000000000bd00", "sd:/atmosphere/contents/")
+		p("Imported: MissionControl embedded fallback")
+	}.else(){
+		p("Skip: no MissionControl source found")
+	}
+}
+
+# Import Hekate-Toolbox (optional, useful for direct UMS SD boot from Horizon)
+if (fsexists("sd:/venom/switch/Hekate-Toolbox.nro")) {
+	copyfile("sd:/venom/switch/Hekate-Toolbox.nro", "sd:/switch/Hekate-Toolbox.nro")
+	p("Imported: Hekate-Toolbox.nro")
+}.else(){
+	if (fsexists("sd:/venom/switch/Hekate-Toolbox/Hekate-Toolbox.nro")) {
+		copydir("sd:/venom/switch/Hekate-Toolbox", "sd:/switch/")
+		p("Imported: Hekate-Toolbox folder")
+	}
+}
+
+# Import useful overlays from Venom (if present)
+if (fsexists("sd:/venom/switch/.overlays/FPSLocker.ovl")) {
+	copyfile("sd:/venom/switch/.overlays/FPSLocker.ovl", "sd:/switch/.overlays/FPSLocker.ovl")
+}
+if (fsexists("sd:/venom/switch/.overlays/Status-Monitor-Overlay.ovl")) {
+	copyfile("sd:/venom/switch/.overlays/Status-Monitor-Overlay.ovl", "sd:/switch/.overlays/Status-Monitor-Overlay.ovl")
+}
+if (fsexists("sd:/venom/switch/.overlays/InfoNX-ovl.ovl")) {
+	copyfile("sd:/venom/switch/.overlays/InfoNX-ovl.ovl", "sd:/switch/.overlays/InfoNX-ovl.ovl")
+}
+if (fsexists("sd:/venom/switch/.overlays/Observer-Tool.ovl")) {
+	copyfile("sd:/venom/switch/.overlays/Observer-Tool.ovl", "sd:/switch/.overlays/Observer-Tool.ovl")
+}
+if (fsexists("sd:/venom/switch/.overlays/sys-clk-overlay.ovl")) {
+	copyfile("sd:/venom/switch/.overlays/sys-clk-overlay.ovl", "sd:/switch/.overlays/sys-clk-overlay.ovl")
+}
+if (fsexists("sd:/venom/switch/.overlays/ovlSysmodules.ovl")) {
+	copyfile("sd:/venom/switch/.overlays/ovlSysmodules.ovl", "sd:/switch/.overlays/ovlSysmodules.ovl")
+}
+if (fsexists("sd:/venom/switch/.overlays/ovlEdiZon.ovl")) {
+	copyfile("sd:/venom/switch/.overlays/ovlEdiZon.ovl", "sd:/switch/.overlays/ovlEdiZon.ovl")
+}
+
+# Import companion configs (safe defaults)
+if (fsexists("sd:/venom/config/status-monitor/config.ini")) {
+	copyfile("sd:/venom/config/status-monitor/config.ini", "sd:/config/status-monitor/config.ini")
+}
+if (fsexists("sd:/venom/config/ultrahand/config.ini")) {
+	copyfile("sd:/venom/config/ultrahand/config.ini", "sd:/config/ultrahand/config.ini")
+}
+p("Done")
+wait(tw = 700)
+
+clear()
+p("Vekir complete")
+p()
+p("Rebooting to Atmosphere")
+# If this run was auto-started via TegraExplorer startup.te, disarm it now
+delfile("sd:/startup.te")
+wait(tw = 1200)
+
+# Try to boot Atmosphere directly (same idea as Kefir updater)
+if (is_erista()) {
+	if (fsexists("sd:/payload.bin")) {
+		payload("sd:/payload.bin")
+	}.else(){
+		if (fsexists("sd:/bootloader/payloads/fusee.bin")) {
+			payload("sd:/bootloader/payloads/fusee.bin")
+		}.else(){
+			p("payload.bin/fusee.bin not found")
+			pause()
+		}
+	}
+}.else(){
+	# Mariko fallback: TegraExplorer usually cannot chainload payload the same way
+	reboot_ofw();
+}

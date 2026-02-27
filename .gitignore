@@ -1,0 +1,10 @@
+.DS_Store
+.sim/
+
+# Source packs (not part of Vekir release repo)
+kefir795/
+NXVenom (12.0.0)/
+
+# Local scratch assets at repo root
+Vekir_w.bmp
+vekir_b.bmp
