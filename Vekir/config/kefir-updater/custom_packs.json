@@ -1,5 +1,6 @@
 {
-	"misc": {
-		 "Update DBI": "link"
-	}
+  "misc": {
+    "Vekir (Latest)": "https://github.com/JostenSyon/Vekir/releases/latest/download/Vekir.zip",
+    "Update DBI": "link"
+  }
 }

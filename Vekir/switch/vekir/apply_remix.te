@@ -243,6 +243,12 @@ if (fsexists("sd:/venom/config/status-monitor/config.ini")) {
 if (fsexists("sd:/venom/config/ultrahand/config.ini")) {
 	copyfile("sd:/venom/config/ultrahand/config.ini", "sd:/config/ultrahand/config.ini")
 }
+
+# Import AIO app from Venom if present (Kefir usually doesn't ship it)
+if (fsexists("sd:/venom/switch/aio-switch-updater/aio-switch-updater.nro")) {
+	copydir("sd:/venom/switch/aio-switch-updater", "sd:/switch/")
+	p("Imported: AIO app from /venom")
+}
 p("Done")
 wait(tw = 700)
 
