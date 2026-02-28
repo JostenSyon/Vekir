@@ -1,0 +1,188 @@
+p=println
+wait={t=timer()while(timer()<(t+tw)){print()}}
+
+# One-shot execution: prevent TegraExplorer from auto-running this again.
+if (fsexists("sd:/startup.te")) {
+	delfile("sd:/startup.te")
+}
+
+clear()
+p("Vekir Clean")
+p("logo_sloth + splash + bootlogo")
+wait(tw = 700)
+
+# 1) Remove Kefir logo patches and Atmosphere splash
+clear()
+p("* Removing logo_sloth + splash")
+if (fsexists("sd:/atmosphere/exefs_patches/logo_sloth")) {
+	deldir("sd:/atmosphere/exefs_patches/logo_sloth")
+}
+if (fsexists("sd:/atmosphere/exefs_patches/logo")) {
+	deldir("sd:/atmosphere/exefs_patches/logo")
+}
+if (fsexists("sd:/atmosphere/exefs_patches/logo_kefir")) {
+	deldir("sd:/atmosphere/exefs_patches/logo_kefir")
+}
+if (fsexists("sd:/atmosphere/exefs_patches/logo_custom")) {
+	deldir("sd:/atmosphere/exefs_patches/logo_custom")
+}
+if (fsexists("sd:/atmosphere/exefs_patches/logo_venom")) {
+	deldir("sd:/atmosphere/exefs_patches/logo_venom")
+}
+if (fsexists("sd:/atmosphere/exefs_patches/bootlogo")) {
+	deldir("sd:/atmosphere/exefs_patches/bootlogo")
+}
+if (fsexists("sd:/atmosphere/splash.png")) {
+	delfile("sd:/atmosphere/splash.png")
+}
+if (fsexists("sd:/atmosphere/splash.bmp")) {
+	delfile("sd:/atmosphere/splash.bmp")
+}
+if (fsexists("sd:/atmosphere/splash.jpg")) {
+	delfile("sd:/atmosphere/splash.jpg")
+}
+if (fsexists("sd:/bootloader/res/ku.bmp")) {
+	delfile("sd:/bootloader/res/ku.bmp")
+}
+if (fsexists("sd:/bootloader/ini/!kefir_updater.ini")) {
+	delfile("sd:/bootloader/ini/!kefir_updater.ini")
+}
+if (fsexists("sd:/bootloader/ini/kefir_updater.ini")) {
+	delfile("sd:/bootloader/ini/kefir_updater.ini")
+}
+
+# Optional hard override: if Venom core exists, replace Atmosphere core files.
+if (fsexists("sd:/venom/atmosphere/package3")) {
+	delfile("sd:/atmosphere/package3")
+	copyfile("sd:/venom/atmosphere/package3", "sd:/atmosphere/package3")
+	if (fsexists("sd:/venom/atmosphere/reboot_payload.bin")) {
+		delfile("sd:/atmosphere/reboot_payload.bin")
+		copyfile("sd:/venom/atmosphere/reboot_payload.bin", "sd:/atmosphere/reboot_payload.bin")
+	}
+	p("Atmosphere core replaced from /venom")
+}
+
+# Keep embedded Uberhand root actions deterministic (Reboot/Shutdown only).
+if (fsexists("sd:/switch/vekir/commands_menu.ini")) {
+	delfile("sd:/switch/.packages/config.ini")
+	copyfile("sd:/switch/vekir/commands_menu.ini", "sd:/switch/.packages/config.ini")
+}
+
+# Ensure SC Wizard backend is fully restored from embedded Venom files.
+if (fsexists("sd:/switch/vekir/scwizard/atmosphere/kips/loader.kip")) {
+	deldir("sd:/atmosphere/kips")
+	copydir("sd:/switch/vekir/scwizard/atmosphere/kips", "sd:/atmosphere/")
+}
+if (fsexists("sd:/switch/vekir/scwizard/atmosphere/contents/00FF0000636C6BFF/exefs.nsp")) {
+	deldir("sd:/atmosphere/contents/00FF0000636C6BFF")
+	copydir("sd:/switch/vekir/scwizard/atmosphere/contents/00FF0000636C6BFF", "sd:/atmosphere/contents/")
+}
+if (fsexists("sd:/switch/vekir/scwizard/config/sys-clk/config.ini")) {
+	deldir("sd:/config/sys-clk")
+	copydir("sd:/switch/vekir/scwizard/config/sys-clk", "sd:/config/")
+}
+if (fsexists("sd:/switch/vekir/scwizard/switch/sys-clk-manager/sys-clk-manager.nro")) {
+	deldir("sd:/switch/sys-clk-manager")
+	copydir("sd:/switch/vekir/scwizard/switch/sys-clk-manager", "sd:/switch/")
+}
+if (fsexists("sd:/switch/vekir/scwizard/switch/.overlays/sys-clk-overlay.ovl")) {
+	delfile("sd:/switch/.overlays/sys-clk-overlay.ovl")
+	copyfile("sd:/switch/vekir/scwizard/switch/.overlays/sys-clk-overlay.ovl", "sd:/switch/.overlays/sys-clk-overlay.ovl")
+}
+if (fsexists("sd:/switch/vekir/scwizard/switch/.packages/SC Wizard/config.ini")) {
+	deldir("sd:/switch/.packages/SC Wizard")
+	copydir("sd:/switch/vekir/scwizard/switch/.packages/SC Wizard", "sd:/switch/.packages/")
+}
+
+# Keep packages page deterministic and minimal.
+if (fsexists("sd:/switch/vekir/commands_menu.ini")) {
+	delfile("sd:/switch/.packages/config.ini")
+	copyfile("sd:/switch/vekir/commands_menu.ini", "sd:/switch/.packages/config.ini")
+}
+deldir("sd:/switch/.packages/DBI")
+deldir("sd:/switch/.packages/Settings")
+deldir("sd:/switch/.packages/Theme")
+deldir("sd:/switch/.packages/Translate Interface")
+deldir("sd:/switch/.packages/Vekir")
+
+p("Done")
+wait(tw = 700)
+
+# 2) Pick preferred bootlogo source
+src=0
+if (fsexists("sd:/switch/vekir/bootlogo/Vekir_w.bmp")) {
+	src=1
+}
+if (src==0) {
+	if (fsexists("sd:/switch/.packages/System Tweaks/Hekate/Bootlogo/data/Vekir_w.bmp")) {
+		src=2
+	}
+}
+if (src==0) {
+	if (fsexists("sd:/bootloader/bootlogo_venom.bmp")) {
+		src=4
+	}
+}
+if (src==0) {
+	if (fsexists("sd:/bootloader/bootlogo.bmp")) {
+		src=5
+	}
+}
+if (src==0) {
+	if (fsexists("sd:/bootloader/bootlogo_kefir.bmp")) {
+		src=6
+	}
+}
+
+# 3) Apply bootlogo to all relevant files
+clear()
+p("* Applying bootlogo")
+if (src==1) {
+	delfile("sd:/bootloader/bootlogo.bmp")
+	copyfile("sd:/switch/vekir/bootlogo/Vekir_w.bmp", "sd:/bootloader/bootlogo.bmp")
+}
+if (src==2) {
+	delfile("sd:/bootloader/bootlogo.bmp")
+	copyfile("sd:/switch/.packages/System Tweaks/Hekate/Bootlogo/data/Vekir_w.bmp", "sd:/bootloader/bootlogo.bmp")
+}
+if (src==4) {
+	delfile("sd:/bootloader/bootlogo.bmp")
+	copyfile("sd:/bootloader/bootlogo_venom.bmp", "sd:/bootloader/bootlogo.bmp")
+}
+if (src==6) {
+	delfile("sd:/bootloader/bootlogo.bmp")
+	copyfile("sd:/bootloader/bootlogo_kefir.bmp", "sd:/bootloader/bootlogo.bmp")
+}
+
+if (fsexists("sd:/bootloader/bootlogo.bmp")) {
+	delfile("sd:/bootloader/bootlogo_kefir.bmp")
+	copyfile("sd:/bootloader/bootlogo.bmp", "sd:/bootloader/bootlogo_kefir.bmp")
+	delfile("sd:/bootloader/updating.bmp")
+	copyfile("sd:/bootloader/bootlogo.bmp", "sd:/bootloader/updating.bmp")
+	p("Bootlogo synced")
+}.else(){
+	p("No bootlogo source found")
+}
+
+wait(tw = 700)
+clear()
+p("Vekir clean done")
+p("Rebooting")
+wait(tw = 900)
+
+# Restore original payload if this run was scheduled by auto-chain.
+if (fsexists("sd:/switch/vekir/payload_backup.bin")) {
+	delfile("sd:/payload.bin")
+	copyfile("sd:/switch/vekir/payload_backup.bin", "sd:/payload.bin")
+	delfile("sd:/switch/vekir/payload_backup.bin")
+}
+
+if (fsexists("sd:/payload.bin")) {
+	payload("sd:/payload.bin")
+}.else(){
+	if (fsexists("sd:/bootloader/payloads/fusee.bin")) {
+		payload("sd:/bootloader/payloads/fusee.bin")
+	}.else(){
+		reboot();
+	}
+}

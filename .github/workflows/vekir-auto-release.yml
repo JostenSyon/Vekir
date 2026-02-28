@@ -1,0 +1,147 @@
+name: Vekir Auto Release
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: vekir-auto-release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve Latest Kefir/NX-Venom Releases
+        id: meta
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, urllib.request, re
+
+          def latest(repo):
+            with urllib.request.urlopen(f"https://api.github.com/repos/{repo}/releases/latest") as r:
+              return json.load(r)
+
+          k = latest("rashevskyv/kefir")
+          v = latest("CatcherITGF/NX-Venom")
+
+          def pick_asset(release, pattern):
+            rx = re.compile(pattern, re.IGNORECASE)
+            for a in release.get("assets", []):
+              n = a.get("name", "")
+              if rx.search(n):
+                return a.get("browser_download_url"), n
+            raise SystemExit(f"Asset not found in {release.get('tag_name')} for pattern: {pattern}")
+
+          kefir_url, kefir_name = pick_asset(k, r"^kefir.*\.zip$")
+          venom_url, venom_name = pick_asset(v, r"^NXVenom.*\.zip$")
+
+          ktag = str(k.get("tag_name", "")).strip()
+          vtag = str(v.get("tag_name", "")).strip()
+          rel_tag = f"auto-kf{ktag}-vx{vtag}"
+          version = f"kf{ktag}-vx{vtag}"
+
+          with open("meta.env", "w", encoding="utf-8") as f:
+            f.write(f"KEFIR_URL={kefir_url}\n")
+            f.write(f"KEFIR_NAME={kefir_name}\n")
+            f.write(f"KEFIR_TAG={ktag}\n")
+            f.write(f"VENOM_URL={venom_url}\n")
+            f.write(f"VENOM_NAME={venom_name}\n")
+            f.write(f"VENOM_TAG={vtag}\n")
+            f.write(f"REL_TAG={rel_tag}\n")
+            f.write(f"VERSION={version}\n")
+          PY
+
+          cat meta.env >> "$GITHUB_ENV"
+          echo "rel_tag=$(grep '^REL_TAG=' meta.env | cut -d= -f2-)" >> "$GITHUB_OUTPUT"
+
+      - name: Download Kefir and NX-Venom
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .ci-inputs
+          curl -L --fail -o ".ci-inputs/${KEFIR_NAME}" "${KEFIR_URL}"
+          curl -L --fail -o ".ci-inputs/${VENOM_NAME}" "${VENOM_URL}"
+          ls -lh .ci-inputs
+
+      - name: Build Vekir Full Package
+        shell: bash
+        run: |
+          set -euo pipefail
+          # refresh /venom folder used by the runtime scripts
+          rm -rf venom
+          mkdir -p venom
+          unzip -q ".ci-inputs/${VENOM_NAME}" -d .ci-inputs/venom
+          # normalize if zip has single top-level folder
+          if [ "$(find .ci-inputs/venom -mindepth 1 -maxdepth 1 | wc -l | tr -d ' ')" = "1" ] && [ -d "$(find .ci-inputs/venom -mindepth 1 -maxdepth 1)" ]; then
+            rsync -a "$(find .ci-inputs/venom -mindepth 1 -maxdepth 1)/" venom/
+          else
+            rsync -a .ci-inputs/venom/ venom/
+          fi
+
+          ./scripts/build_vekir_full.sh --kefir-zip ".ci-inputs/${KEFIR_NAME}" --version "${VERSION}"
+          cp ".release/Vekir-full-${VERSION}.zip" ".release/Vekir.zip"
+          ls -lh .release
+
+      - name: Validate Auto-Chain In Built Package
+        shell: bash
+        run: |
+          set -euo pipefail
+          ZIP=".release/Vekir.zip"
+          test -f "$ZIP"
+
+          # Must include the injected auto-chain block in Kefir updater.
+          unzip -p "$ZIP" switch/kefir-updater/update.te | grep -q "# VEKIR AUTO-CHAIN BEGIN"
+          unzip -p "$ZIP" switch/kefir-updater/update.te | grep -q "copyfile(\"sd:/switch/vekir/apply_remix.te\", \"sd:/startup.te\")"
+
+          # Runtime scripts must not use unsupported helpers on some TegraExplorer builds.
+          ! unzip -p "$ZIP" startup.te | grep -q "is_erista("
+          ! unzip -p "$ZIP" switch/vekir/apply_remix.te | grep -q "is_erista("
+          ! unzip -p "$ZIP" startup.te | grep -q "venom/config/uberhand"
+          ! unzip -p "$ZIP" switch/vekir/apply_remix.te | grep -q "venom/config/uberhand"
+          ! unzip -p "$ZIP" startup.te | grep -q "venom/switch/.packages"
+          ! unzip -p "$ZIP" switch/vekir/apply_remix.te | grep -q "venom/switch/.packages"
+
+          # Ensure auto-run script exists in package.
+          unzip -p "$ZIP" switch/vekir/apply_remix.te >/dev/null
+
+          # Embedded Uberhand + overlays + packages must be present.
+          unzip -p "$ZIP" config/uberhand/config.ini >/dev/null
+          unzip -p "$ZIP" config/uberhand/overlays.ini >/dev/null
+          unzip -p "$ZIP" config/uberhand/packages.ini >/dev/null
+          unzip -p "$ZIP" switch/.packages/config.ini >/dev/null
+          unzip -p "$ZIP" switch/.packages/SC\ Wizard/config.ini >/dev/null
+          unzip -p "$ZIP" switch/.packages/System\ Tweaks/config.ini >/dev/null
+          unzip -p "$ZIP" switch/aio-switch-updater/aio-switch-updater.nro >/dev/null
+          unzip -p "$ZIP" switch/.overlays/ovlmenu.ovl >/dev/null
+          unzip -p "$ZIP" switch/.overlays/sys-clk-overlay.ovl >/dev/null
+          unzip -p "$ZIP" switch/.overlays/sys-patch-overlay.ovl >/dev/null
+
+      - name: Create Or Update Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.REL_TAG }}
+          name: Vekir ${{ env.VERSION }}
+          overwrite_files: true
+          body: |
+            Automated build from upstream releases.
+
+            - Kefir: `${{ env.KEFIR_TAG }}`
+            - NX-Venom: `${{ env.VENOM_TAG }}`
+
+            Assets:
+            - `Vekir.zip` (latest-friendly)
+            - `Vekir-full-${{ env.VERSION }}.zip` (versioned)
+          files: |
+            .release/Vekir.zip
+            .release/Vekir-full-${{ env.VERSION }}.zip

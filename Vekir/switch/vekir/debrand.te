@@ -1,0 +1,53 @@
+p=println
+wait={t=timer()while(timer()<(t+tw)){print()}}
+
+clear()
+p("Debrand")
+p("Remove: mordor + splash + bradipo")
+wait(tw = 700)
+
+clear()
+p("* Removing bradipo (logo_sloth)")
+if (fsexists("sd:/atmosphere/exefs_patches/logo_sloth")) {
+	deldir("sd:/atmosphere/exefs_patches/logo_sloth")
+}
+if (fsexists("sd:/atmosphere/exefs_patches/logo")) {
+	deldir("sd:/atmosphere/exefs_patches/logo")
+}
+
+p("* Removing Atmosphere splash")
+if (fsexists("sd:/atmosphere/splash.png")) {
+	delfile("sd:/atmosphere/splash.png")
+}
+if (fsexists("sd:/atmosphere/splash.bmp")) {
+	delfile("sd:/atmosphere/splash.bmp")
+}
+if (fsexists("sd:/atmosphere/splash.jpg")) {
+	delfile("sd:/atmosphere/splash.jpg")
+}
+
+p("* Removing mordor (ku.bmp)")
+if (fsexists("sd:/bootloader/res/ku.bmp")) {
+	delfile("sd:/bootloader/res/ku.bmp")
+}
+
+p("* Removing Kefir updater entries")
+if (fsexists("sd:/bootloader/ini/!kefir_updater.ini")) {
+	delfile("sd:/bootloader/ini/!kefir_updater.ini")
+}
+if (fsexists("sd:/bootloader/ini/kefir_updater.ini")) {
+	delfile("sd:/bootloader/ini/kefir_updater.ini")
+}
+
+p("Done")
+wait(tw = 900)
+clear()
+p("Debrand done")
+p("Rebooting")
+wait(tw = 900)
+
+if (fsexists("sd:/payload.bin")) {
+	payload("sd:/payload.bin")
+}.else(){
+	reboot();
+}

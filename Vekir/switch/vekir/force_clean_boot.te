@@ -1,0 +1,83 @@
+p=println
+wait={t=timer()while(timer()<(t+tw)){print()}}
+
+clear()
+p("Vekir FORCE Clean")
+p("v1")
+p("Boot logo + splash cleanup only")
+wait(tw = 900)
+
+clear()
+p("* Remove Atmosphere splash")
+if (fsexists("sd:/atmosphere/splash.png")) {
+	delfile("sd:/atmosphere/splash.png")
+}
+if (fsexists("sd:/atmosphere/splash.bmp")) {
+	delfile("sd:/atmosphere/splash.bmp")
+}
+p("Done")
+wait(tw = 700)
+
+clear()
+p("* Remove legacy logo patches")
+if (fsexists("sd:/atmosphere/exefs_patches/logo_sloth")) {
+	delfile("sd:/atmosphere/exefs_patches/logo_sloth/*")
+	deldir("sd:/atmosphere/exefs_patches/logo_sloth")
+}
+if (fsexists("sd:/atmosphere/exefs_patches/logo_kefir")) {
+	delfile("sd:/atmosphere/exefs_patches/logo_kefir/*")
+	deldir("sd:/atmosphere/exefs_patches/logo_kefir")
+}
+if (fsexists("sd:/atmosphere/exefs_patches/logo_custom")) {
+	delfile("sd:/atmosphere/exefs_patches/logo_custom/*")
+	deldir("sd:/atmosphere/exefs_patches/logo_custom")
+}
+if (fsexists("sd:/atmosphere/exefs_patches/logo_venom")) {
+	delfile("sd:/atmosphere/exefs_patches/logo_venom/*")
+	deldir("sd:/atmosphere/exefs_patches/logo_venom")
+}
+if (fsexists("sd:/atmosphere/exefs_patches/bootlogo")) {
+	delfile("sd:/atmosphere/exefs_patches/bootlogo/*")
+	deldir("sd:/atmosphere/exefs_patches/bootlogo")
+}
+p("Done")
+wait(tw = 700)
+
+clear()
+p("* Force bootlogo files")
+if (fsexists("sd:/switch/vekir/bootlogo/Vekir_w.bmp")) {
+	delfile("sd:/bootloader/bootlogo.bmp")
+	copyfile("sd:/switch/vekir/bootlogo/Vekir_w.bmp", "sd:/bootloader/bootlogo.bmp")
+	delfile("sd:/bootloader/bootlogo_kefir.bmp")
+	copyfile("sd:/switch/vekir/bootlogo/Vekir_w.bmp", "sd:/bootloader/bootlogo_kefir.bmp")
+	p("Source: Vekir_w.bmp")
+}.else(){
+	if (fsexists("sd:/bootloader/bootlogo_venom.bmp")) {
+		delfile("sd:/bootloader/bootlogo.bmp")
+		copyfile("sd:/bootloader/bootlogo_venom.bmp", "sd:/bootloader/bootlogo.bmp")
+		delfile("sd:/bootloader/bootlogo_kefir.bmp")
+		copyfile("sd:/bootloader/bootlogo_venom.bmp", "sd:/bootloader/bootlogo_kefir.bmp")
+		p("Source: bootlogo_venom.bmp")
+	}.else(){
+		if (fsexists("sd:/bootloader/bootlogo.bmp")) {
+			delfile("sd:/bootloader/bootlogo_kefir.bmp")
+			copyfile("sd:/bootloader/bootlogo.bmp", "sd:/bootloader/bootlogo_kefir.bmp")
+			p("Source: existing bootlogo.bmp")
+		}.else(){
+			p("No source logo found")
+		}
+	}
+}
+p("Sync updating.bmp")
+if (fsexists("sd:/bootloader/bootlogo.bmp")) {
+	delfile("sd:/bootloader/updating.bmp")
+	copyfile("sd:/bootloader/bootlogo.bmp", "sd:/bootloader/updating.bmp")
+}
+p("Done")
+wait(tw = 900)
+
+clear()
+p("FORCE clean complete")
+p("Rebooting")
+wait(tw = 900)
+reboot();

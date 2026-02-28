@@ -1,0 +1,5 @@
+High EMC Clocks will require gpu minimum voltage to be raised
+
+Default stock GPU vmin: 610mV
+
+UV tabels uses 590mV as minimum voltage
