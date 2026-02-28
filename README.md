@@ -2,6 +2,8 @@
 
 `Vekir` è un patch-pack ibrido pensato per chi usa quotidianamente sia Kefir che NX-Venom.
 
+![Vekir Bootlogo](./assets/bootlogo_preview.png)
+
 Obiettivo:
 - mantenere l'affidabilità e la semplicità di update tipiche di Kefir
 - integrare personalizzazione HUD/OC e strumenti utili tipici di NX-Venom
@@ -22,10 +24,6 @@ Vekir non sostituisce i due progetti originali: li rispetta e li usa come base t
 - `switch/vekir/commands_menu.ini`: menu comandi safe
 - `switch/vekir/system_tweaks_bootlogo_config.ini`: menu bootlogo esteso
 - `switch/vekir/bootlogo/`: asset bootlogo Vekir (`Light` / `Black`)
-
-## Bootlogo Preview
-
-![Vekir Bootlogo](./Vekir/switch/vekir/bootlogo/Vekir_w.bmp)
 
 ## Workflow consigliato (utente finale)
 
