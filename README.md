@@ -5,9 +5,9 @@
 ![Vekir Bootlogo](./assets/bootlogo_preview.png)
 
 Obiettivo:
-- mantenere l'affidabilità e la semplicità di update tipiche di Kefir
-- integrare personalizzazione HUD/OC e strumenti utili tipici di NX-Venom
-- mantenere boot pulito, debrand e gestione controllata dei file
+- mantenere la stabilità e la leggerezza tipiche di Kefir
+- integrare le funzioni migliori di NX-Venom, soprattutto overclock e HUD
+- mantenere un flusso di update semplice e affidabile
 
 ## Filosofia
 
@@ -20,7 +20,7 @@ Vekir non sostituisce i due progetti originali: li rispetta e li usa come base t
 
 - `bootloader/ini/vekir.ini`: voce Hekate per avvio rapido Vekir
 - `startup.te`: autorun TegraExplorer (one-shot)
-- `switch/vekir/apply_remix.te`: script principale (debrand + HUD + import selettivi)
+- `switch/vekir/apply_remix.te`: script principale (HUD + import selettivi)
 - `switch/vekir/commands_menu.ini`: menu comandi safe
 - `switch/vekir/system_tweaks_bootlogo_config.ini`: menu bootlogo esteso
 - `switch/vekir/bootlogo/`: asset bootlogo Vekir (`Light` / `Black`)
@@ -71,9 +71,9 @@ Il builder applica automaticamente la chain:
 
 ## Automazione GitHub (build + release)
 
-Il workflow `.github/workflows/vekir-auto-release.yml` fa tutto in automatico:
+Il workflow `.github/workflows/vekir-auto-release.yml` gestisce la build/release in modalità manuale:
 - prende l'ultima release di Kefir
-- prende l'ultima release di NX-Venom
+- usa i componenti Venom mantenuti nel repository (aggiornati manualmente quando necessario)
 - builda `Vekir-full`
 - pubblica release GitHub con:
   - `Vekir.zip` (link stabile per `latest/download`)
@@ -81,7 +81,6 @@ Il workflow `.github/workflows/vekir-auto-release.yml` fa tutto in automatico:
 
 Modalità:
 - `Manuale`: GitHub -> Actions -> `Vekir Auto Release` -> Run workflow
-- `Automatica`: schedulata giornalmente (cron)
 
 ## Requisiti pratici
 
