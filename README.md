@@ -81,8 +81,8 @@ Il builder applica automaticamente la chain:
 ### Build e Release
 
 Il workflow [`.github/workflows/vekir-auto-release.yml`](./.github/workflows/vekir-auto-release.yml) gestisce la build/release in modalita manuale:
-- prende l'ultima release di Kefir
-- usa i componenti Venom mantenuti nel repository e aggiornati manualmente quando necessario
+- usa la release Kefir pin-nata e validata dal maintainer
+- usa i componenti Venom gia inclusi nel repository e aggiornati manualmente quando necessario
 - builda `Vekir-full`
 - pubblica release GitHub con `Vekir.zip` e `Vekir-full-kfX-vxY.zip`
 
@@ -188,8 +188,8 @@ The builder automatically applies this chain:
 ### Build and Release
 
 The workflow [`.github/workflows/vekir-auto-release.yml`](./.github/workflows/vekir-auto-release.yml) handles build/release in manual mode:
-- fetches the latest Kefir release
-- uses Venom components already maintained in the repository and updated manually when needed
+- uses the maintainer-pinned, validated Kefir release
+- uses Venom components already embedded in the repository and updated manually when needed
 - builds `Vekir-full`
 - publishes GitHub release assets as `Vekir.zip` and `Vekir-full-kfX-vxY.zip`
 

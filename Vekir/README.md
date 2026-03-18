@@ -62,9 +62,9 @@ Il builder applica automaticamente la chain:
 
 ## Automazione GitHub (build + release)
 
-Il workflow `.github/workflows/vekir-auto-release.yml` fa tutto in automatico:
-- prende l'ultima release di Kefir
-- prende l'ultima release di NX-Venom
+Il workflow `.github/workflows/vekir-auto-release.yml` pubblica solo su esecuzione manuale:
+- usa la release Kefir pin-nata e validata dal maintainer
+- usa i componenti Venom gia inclusi nel repository
 - builda `Vekir-full`
 - pubblica release GitHub con:
   - `Vekir.zip` (link stabile per `latest/download`)
@@ -72,7 +72,6 @@ Il workflow `.github/workflows/vekir-auto-release.yml` fa tutto in automatico:
 
 Modalità:
 - `Manuale`: GitHub -> Actions -> `Vekir Auto Release` -> Run workflow
-- `Automatica`: schedulata giornalmente (cron)
 
 ## Requisiti pratici
 

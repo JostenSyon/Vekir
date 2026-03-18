@@ -10,6 +10,10 @@ concurrency:
   group: vekir-auto-release-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  KEFIR_TAG: "795"
+  VENOM_TAG: "12.0.0"
+
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
@@ -18,20 +22,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Resolve Latest Kefir/NX-Venom Releases
+      - name: Resolve Pinned Kefir/NX-Venom Releases
         id: meta
         shell: bash
         run: |
           set -euo pipefail
           python3 - <<'PY'
-          import json, urllib.request, re
+          import json, urllib.request, re, os
 
-          def latest(repo):
-            with urllib.request.urlopen(f"https://api.github.com/repos/{repo}/releases/latest") as r:
+          def by_tag(repo, tag):
+            with urllib.request.urlopen(f"https://api.github.com/repos/{repo}/releases/tags/{tag}") as r:
               return json.load(r)
 
-          k = latest("rashevskyv/kefir")
-          v = latest("CatcherITGF/NX-Venom")
+          k = by_tag("rashevskyv/kefir", os.environ["KEFIR_TAG"])
+          v = by_tag("CatcherITGF/NX-Venom", os.environ["VENOM_TAG"])
 
           def pick_asset(release, pattern):
             rx = re.compile(pattern, re.IGNORECASE)
@@ -44,8 +48,8 @@ jobs:
           kefir_url, kefir_name = pick_asset(k, r"^kefir.*\.zip$")
           venom_url, venom_name = pick_asset(v, r"^NXVenom.*\.zip$")
 
-          ktag = str(k.get("tag_name", "")).strip()
-          vtag = str(v.get("tag_name", "")).strip()
+          ktag = os.environ["KEFIR_TAG"]
+          vtag = os.environ["VENOM_TAG"]
           rel_tag = f"auto-kf{ktag}-vx{vtag}"
           version = f"kf{ktag}-vx{vtag}"
 
@@ -136,6 +140,8 @@ jobs:
 
             - Kefir: `${{ env.KEFIR_TAG }}`
             - NX-Venom: `${{ env.VENOM_TAG }}`
+
+            Pinned, maintainer-validated source versions.
 
             Assets:
             - `Vekir.zip` (latest-friendly)
